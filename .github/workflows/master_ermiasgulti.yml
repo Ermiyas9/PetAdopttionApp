@@ -21,32 +21,36 @@ jobs:
         with:
           node-version: '18.x'
 
-      - name: npm install, build, and test
+      - name: Install dependencies
         run: |
-          cd reactapp  # Change directory to 'reactapp' where package.json is located
+          cd reactapp
           npm install
+
+      - name: Build the app
+        run: |
+          cd reactapp
           npm run build --if-present
           npm run test --if-present
 
       - name: Zip artifact for deployment
         run: |
-          cd reactapp  # Ensure we're in the correct folder
-          zip -r release.zip .  # Zip all files inside reactapp
+          cd reactapp
+          zip -r release.zip .
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: reactapp/release.zip  # Path to the zip file in the reactapp folder
+          path: reactapp/release.zip
 
   deploy:
-    runs-on: ubuntu-24.04  # Use Ubuntu 24.04 for compatibility with the latest image
+    runs-on: ubuntu-24.04
     needs: build
     environment:
       name: 'Production'
       url: ${{ steps.deploy-to-webapp.outputs.webapp-url }}
     permissions:
-      id-token: write # This is required for requesting the JWT
+      id-token: write #This is required for requesting the JWT
 
     steps:
       - name: Download artifact from build job
@@ -55,8 +59,8 @@ jobs:
           name: node-app
 
       - name: Unzip artifact for deployment
-        run: unzip reactapp/release.zip  # Unzip the release file
-
+        run: unzip release.zip
+      
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -70,4 +74,4 @@ jobs:
         with:
           app-name: 'ErmiasGulti'
           slot-name: 'Production'
-          package: ./reactapp  # Path to the 'reactapp' directory for deployment
+          package: reactapp/
